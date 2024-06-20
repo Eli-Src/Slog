@@ -4,18 +4,21 @@
 #include <optional>
 #include <sstream>
 #include <string_view>
+#include <variant>
 
 class Slog {
 public:
     enum Level {
-        LevelInfo,
-        LevelError,
-        LevelFatal,
-        LevelOff
+        Info,
+        Error,
+        Fatal,
+        Off
     };
 
 private:
     Level m_min_level;
+
+    using available_map_values = std::variant<bool, int, float, double, std::string_view>;
 
     std::string getCurrentTimeInRFC3339() const {
         // Get the current time in UTC
@@ -37,28 +40,54 @@ public:
 
     std::string_view get_level_string(Level level) const {
         switch (level) {
-        case Level::LevelInfo: return "INFO";
-        case Level::LevelError: return "ERROR";
-        case Level::LevelFatal: return "FATAL";
+        case Level::Info: return "INFO";
+        case Level::Error: return "ERROR";
+        case Level::Fatal: return "FATAL";
         default: return "";
         }
     }
 
     void print(Level level,
                std::string_view message,
-               std::optional<std::map<std::string_view, std::string_view>> properties = std::nullopt) const {
+               std::optional<std::map<std::string_view, available_map_values>> properties = std::nullopt) const {
         if (level < m_min_level) return;
-        std::cout << "{\"level\":\"" << get_level_string(level) << "\",\"time\":\"" << getCurrentTimeInRFC3339() <<
+        std::ostream& out = (level >= Slog::Level::Error) ? std::cerr : std::cout;
+        out << "{\"level\":\"" << get_level_string(level) << "\",\"time\":\"" << getCurrentTimeInRFC3339() <<
         "\",\"message\":\"" << message << '\"';
         if (properties != std::nullopt) {
-            std::cout << ",{";
+            out << ",{";
             const auto& last_key = properties->rbegin()->first;
             for (const auto& pair : *properties) {
-                std::cout << '\"' << pair.first << "\":\"" << pair.second << '\"';
+                if (std::holds_alternative<std::string_view>(pair.second))
+                    out << '\"' << pair.first << "\":\"" << std::get<std::string_view>(pair.second) << '\"';
+                else if (std::holds_alternative<bool>(pair.second))
+                    out << '\"' << pair.first << "\":" << std::noboolalpha << std::get<bool>(pair.second);
+                else if (std::holds_alternative<int>(pair.second))
+                    out << '\"' << pair.first << "\":" << std::get<int>(pair.second);
+                else if (std::holds_alternative<float>(pair.second))
+                    out << '\"' << pair.first << "\":" << std::get<float>(pair.second);
+                else if (std::holds_alternative<double>(pair.second))
+                    out << '\"' << pair.first << "\":" << std::get<double>(pair.second);
                 if (pair.first != last_key) std::cout << ',';
             }
-            std::cout << '}';
+            out << '}';
         }
-        std::cout << "}\n";
+        out << "}\n";
+        if (level == Level::Fatal) std::exit(1);
+    }
+
+    void print_info(std::string_view message,
+                    std::optional<std::map<std::string_view, available_map_values>> properties = std::nullopt) const {
+        print(Level::Info, message, properties);
+    }
+
+    void print_error(std::string_view message,
+                    std::optional<std::map<std::string_view, available_map_values>> properties = std::nullopt) const {
+        print(Level::Info, message, properties);
+    }
+
+    void print_fatal(std::string_view message,
+                    std::optional<std::map<std::string_view, available_map_values>> properties = std::nullopt) const {
+        print(Level::Info, message, properties);
     }
 };
