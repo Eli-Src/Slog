@@ -4,15 +4,16 @@
 #include <string_view>
 
 int main() {
-    SLog slog = {SLog::Level::LevelInfo};
+    Slog slog = {Slog::Level::Info};
 
-    slog.print(SLog::Level::LevelInfo, "This is a test");
+    slog.print_info("This is a test");
 
     std::cout << '\n';
 
-    slog.print(SLog::Level::LevelError, "New Test", std::map<std::string_view, std::string_view>{
+    slog.print_error("New Test", std::map<std::string_view, Slog::map_values>{
         {"JOOO", "2"},
-        {"TEST", "KASDK"}
+        {"TEST", true},
+        {"Maria", 2.3}
     });
 
     return 0;

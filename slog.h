@@ -15,10 +15,10 @@ public:
         Off
     };
 
+    using map_values = std::variant<bool, int, float, double, std::string_view>;
+
 private:
     Level m_min_level;
-
-    using available_map_values = std::variant<bool, int, float, double, std::string_view>;
 
     std::string getCurrentTimeInRFC3339() const {
         // Get the current time in UTC
@@ -49,7 +49,7 @@ public:
 
     void print(Level level,
                std::string_view message,
-               std::optional<std::map<std::string_view, available_map_values>> properties = std::nullopt) const {
+               std::optional<std::map<std::string_view, map_values>> properties = std::nullopt) const {
         if (level < m_min_level) return;
         std::ostream& out = (level >= Slog::Level::Error) ? std::cerr : std::cout;
         out << "{\"level\":\"" << get_level_string(level) << "\",\"time\":\"" << getCurrentTimeInRFC3339() <<
@@ -61,7 +61,7 @@ public:
                 if (std::holds_alternative<std::string_view>(pair.second))
                     out << '\"' << pair.first << "\":\"" << std::get<std::string_view>(pair.second) << '\"';
                 else if (std::holds_alternative<bool>(pair.second))
-                    out << '\"' << pair.first << "\":" << std::noboolalpha << std::get<bool>(pair.second);
+                    out << '\"' << pair.first << "\":" << std::boolalpha << std::get<bool>(pair.second);
                 else if (std::holds_alternative<int>(pair.second))
                     out << '\"' << pair.first << "\":" << std::get<int>(pair.second);
                 else if (std::holds_alternative<float>(pair.second))
@@ -77,17 +77,17 @@ public:
     }
 
     void print_info(std::string_view message,
-                    std::optional<std::map<std::string_view, available_map_values>> properties = std::nullopt) const {
+                    std::optional<std::map<std::string_view, map_values>> properties = std::nullopt) const {
         print(Level::Info, message, properties);
     }
 
     void print_error(std::string_view message,
-                    std::optional<std::map<std::string_view, available_map_values>> properties = std::nullopt) const {
-        print(Level::Info, message, properties);
+                    std::optional<std::map<std::string_view, map_values>> properties = std::nullopt) const {
+        print(Level::Error, message, properties);
     }
 
     void print_fatal(std::string_view message,
-                    std::optional<std::map<std::string_view, available_map_values>> properties = std::nullopt) const {
-        print(Level::Info, message, properties);
+                    std::optional<std::map<std::string_view, map_values>> properties = std::nullopt) const {
+        print(Level::Fatal, message, properties);
     }
 };
