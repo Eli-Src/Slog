@@ -51,7 +51,7 @@ public:
 
     void print(Level level,
                std::string_view message,
-               std::optional<std::map<std::string_view, map_values>> properties = std::nullopt) const {
+               std::optional<Properties> properties = std::nullopt) const {
         if (level < m_min_level) return;
         std::ostream& out = (level >= Slog::Level::Error) ? std::cerr : std::cout;
         out << "{\"level\":\"" << get_level_string(level) << "\",\"time\":\"" << getCurrentTimeInRFC3339() <<
@@ -79,17 +79,17 @@ public:
     }
 
     void print_info(std::string_view message,
-                    std::optional<std::map<std::string_view, map_values>> properties = std::nullopt) const {
+                    std::optional<Properties> properties = std::nullopt) const {
         print(Level::Info, message, properties);
     }
 
     void print_error(std::string_view message,
-                    std::optional<std::map<std::string_view, map_values>> properties = std::nullopt) const {
+                    std::optional<Properties> properties = std::nullopt) const {
         print(Level::Error, message, properties);
     }
 
     void print_fatal(std::string_view message,
-                    std::optional<std::map<std::string_view, map_values>> properties = std::nullopt) const {
+                    std::optional<Properties> properties = std::nullopt) const {
         print(Level::Fatal, message, properties);
     }
 };
