@@ -34,6 +34,8 @@ private:
     }
 
 public:
+    using Properties = std::map<std::string_view, Slog::map_values>;
+
     Slog(Level min_level) :
         m_min_level{min_level}
     {}
@@ -54,8 +56,8 @@ public:
         std::ostream& out = (level >= Slog::Level::Error) ? std::cerr : std::cout;
         out << "{\"level\":\"" << get_level_string(level) << "\",\"time\":\"" << getCurrentTimeInRFC3339() <<
         "\",\"message\":\"" << message << '\"';
-        if (properties != std::nullopt) {
-            out << ",{";
+        if (properties != std::nullopt && (*properties).size() != 0) {
+            out << ",\"properties\":{";
             const auto& last_key = properties->rbegin()->first;
             for (const auto& pair : *properties) {
                 if (std::holds_alternative<std::string_view>(pair.second))
