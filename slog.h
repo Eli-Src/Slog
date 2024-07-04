@@ -1,3 +1,6 @@
+#ifndef SLOG_H
+#define SLOG_H
+
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -93,3 +96,5 @@ public:
         print(Level::Fatal, message, properties);
     }
 };
+
+#endif // SLOG_H
